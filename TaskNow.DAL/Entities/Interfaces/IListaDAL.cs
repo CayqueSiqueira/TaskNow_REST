@@ -1,16 +1,11 @@
-using System.Linq.Expressions;
+using TaskNow.DAL.Base;
 using TaskNow.DAO.Entities;
 using TaskNow.DTO.Entities;
 
 namespace TaskNow.DAL.Entities.Interfaces;
 
-public interface IListaDAL
+public interface IListaDAL : IBaseDAL<Lista, ListaDTO>
 {
-    Task<ListaDTO?> GetByIdAsync(int id);
-    Task<ListaDTO> CreateAsync(ListaDTO dto);
-    Task<ListaDTO?> EditAsync(int id, ListaDTO dto);
-    Task<bool> DeleteAsync(int id);
-    IQueryable<Lista> GetQuery(bool asNoTracking, params Expression<Func<Lista, object>>[] includes);
     Task<List<ListaDTO>> ObterPorQuadroOrdenadoAsync(int quadroId);
     Task<int> ObterProximaOrdemAsync(int quadroId);
 }

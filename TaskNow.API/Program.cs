@@ -96,8 +96,10 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 builder.Services.AddHttpContextAccessor();
 
 builder.Services.AddScoped<IUsuarioContexto, UsuarioContexto>();
+
 builder.Services.AddScoped<IQuadroDAL, QuadroDAL>();
 builder.Services.AddScoped<IListaDAL, ListaDAL>();
+
 builder.Services.AddScoped<IQuadroBLL, QuadroBLL>();
 builder.Services.AddScoped<IListaBLL, ListaBLL>();
 
