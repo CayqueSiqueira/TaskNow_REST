@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="TaskNow.API/TaskNow.API.csproj" />
+  <Project Path="TaskNow.BLL/TaskNow.BLL.csproj" />
+  <Project Path="TaskNow.DAL/TaskNow.DAL.csproj" />
+  <Project Path="TaskNow.DAO/TaskNow.DAO.csproj" />
+  <Project Path="TaskNow.DTO/TaskNow.DTO.csproj" />
+  <Project Path="TaskNow.XUnitTest/TaskNow.XUnitTest.csproj" />
+</Solution>
