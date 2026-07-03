@@ -101,11 +101,14 @@ builder.Services.AddScoped<IListaDAL, ListaDAL>();
 builder.Services.AddScoped<IQuadroBLL, QuadroBLL>();
 builder.Services.AddScoped<IListaBLL, ListaBLL>();
 
+var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
+    ?? ["http://localhost:5173"];
+
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("Portal", policy =>
     {
-        policy.WithOrigins("http://localhost:5173")
+        policy.WithOrigins(allowedOrigins)
             .AllowAnyHeader()
             .AllowAnyMethod()
             .AllowCredentials();
