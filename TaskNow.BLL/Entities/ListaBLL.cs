@@ -86,6 +86,39 @@ public class ListaBLL(IListaDAL listaDAL, IQuadroDAL quadroDAL, IUsuarioContexto
         return RetornoDTO<bool>.Ok(await listaDAL.DeleteAsync(id), "Lista excluida com sucesso.");
     }
 
+    public async Task<RetornoDTO<List<ListaDTO>>> CriarPadraoAsync(int quadroId)
+    {
+        var permissao = await ValidarAcessoQuadroAsync(quadroId);
+        if (!permissao.Sucesso)
+        {
+            return RetornoDTO<List<ListaDTO>>.Fail(permissao.Mensagem!);
+        }
+
+        var listasExistentes = await listaDAL.ObterPorQuadroOrdenadoAsync(quadroId);
+        var nomesPadrao = new List<string> { "A fazer", "Em andamento", "Em teste", "Concluido" };
+
+        var nomesParaCriar = nomesPadrao
+            .Where(nome => !listasExistentes.Any(le => le.Nome.Trim().Equals(nome, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+
+        if (nomesParaCriar.Count > 0)
+        {
+            int proximaOrdem = await listaDAL.ObterProximaOrdemAsync(quadroId);
+            foreach (var nome in nomesParaCriar)
+            {
+                await listaDAL.CreateAsync(new ListaDTO
+                {
+                    QuadroId = quadroId,
+                    Nome = nome,
+                    Ordem = proximaOrdem++
+                });
+            }
+        }
+
+        var listasAtualizadas = await listaDAL.ObterPorQuadroOrdenadoAsync(quadroId);
+        return RetornoDTO<List<ListaDTO>>.Ok(listasAtualizadas, "Listas padrao processadas com sucesso.");
+    }
+
     private async Task<RetornoDTO<bool>> ValidarAcessoQuadroAsync(int quadroId)
     {
         var usuarioId = usuarioContexto.UsuarioId;

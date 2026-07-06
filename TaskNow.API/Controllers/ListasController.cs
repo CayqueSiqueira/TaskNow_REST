@@ -24,6 +24,13 @@ public class ListasController(IListaBLL listaBLL) : ControllerBase
         return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
     }
 
+    [HttpPost("quadro/{quadroId:int}/padrao")]
+    public async Task<IActionResult> CriarPadrao(int quadroId)
+    {
+        var retorno = await listaBLL.CriarPadraoAsync(quadroId);
+        return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
+    }
+
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Editar(int id, ListaCriarRequestDTO request)
     {
