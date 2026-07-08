@@ -1,6 +1,7 @@
 using TaskNow.BLL.Entities.Interfaces;
 using TaskNow.BLL.Utils.Interfaces;
 using TaskNow.DAL.Entities.Interfaces;
+using TaskNow.DAO.Entities;
 using TaskNow.DTO.Entities;
 using TaskNow.DTO.Requests.Lista;
 using TaskNow.DTO.Utils;
@@ -34,6 +35,20 @@ public class ListaBLL(IListaDAL listaDAL, IQuadroDAL quadroDAL, IUsuarioContexto
             return RetornoDTO<ListaDTO>.Fail("Nome da lista e obrigatorio.");
         }
 
+        if (request.Nome.Length > 80)
+        {
+            return RetornoDTO<ListaDTO>.Fail("Nome da lista nao pode exceder 80 caracteres.");
+        }
+
+        var listasDoQuadro = await listaDAL.ObterPorQuadroOrdenadoAsync(request.QuadroId);
+
+        var nomeJaExiste = listasDoQuadro.Any(l =>
+            l.Nome.Trim().Equals(request.Nome.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (nomeJaExiste)
+        {
+            return RetornoDTO<ListaDTO>.Fail("Ja existe uma lista com este nome neste quadro.");
+        }
+
         var lista = await listaDAL.CreateAsync(new ListaDTO
         {
             QuadroId = request.QuadroId,
@@ -61,6 +76,19 @@ public class ListaBLL(IListaDAL listaDAL, IQuadroDAL quadroDAL, IUsuarioContexto
         if (string.IsNullOrWhiteSpace(request.Nome))
         {
             return RetornoDTO<ListaDTO>.Fail("Nome da lista e obrigatorio.");
+        }
+
+        if (request.Nome.Length > 80)
+        {
+            return RetornoDTO<ListaDTO>.Fail("Nome da lista nao pode exceder 80 caracteres.");
+        }
+
+        var listasDoQuadro = await listaDAL.ObterPorQuadroOrdenadoAsync(listaAtual.QuadroId);
+        var nomeJaExiste = listasDoQuadro.Any(l =>
+            l.Id != id && l.Nome.Trim().Equals(request.Nome.Trim(), StringComparison.OrdinalIgnoreCase));
+        if (nomeJaExiste)
+        {
+            return RetornoDTO<ListaDTO>.Fail("Ja existe uma lista com este nome neste quadro.");
         }
 
         var lista = await listaDAL.EditAsync(id, new ListaDTO { Nome = request.Nome.Trim() });
