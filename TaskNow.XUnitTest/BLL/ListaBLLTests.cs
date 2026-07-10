@@ -126,6 +126,35 @@ public class ListaBLLTests
     }
 
     [Fact]
+    public async Task CriarAsync_DeveFalhar_QuandoUsuarioNaoAutenticado()
+    {
+        // Arrange 
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns(string.Empty);
+
+        var request = new ListaCriarRequestDTO
+        {
+            QuadroId = quadroId,
+            Nome = "Nova Lista"
+        };
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.CriarAsync(request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Usuario nao autenticado.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.CreateAsync(It.IsAny<ListaDTO>()), Times.Never);
+    }
+
+    [Fact]
     public async Task CriarAsync_DeveFalhar_QuandoNomeExceder80Caracteres()
     {
         // Arrange
@@ -522,5 +551,234 @@ public class ListaBLLTests
 
         listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.Is<Dictionary<int, int>>(dict => 
             dict.Count == 2 && dict[2] == 1 && dict[1] == 2)), Times.Once);
+    }
+
+    [Fact]
+    public async Task CriarAsync_DeveFalhar_QuandoUsuarioSemAcessoAoQuadro()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(false);
+
+        var request = new ListaCriarRequestDTO
+        {
+            QuadroId = quadroId,
+            Nome = "Nova Lista"
+        };
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.CriarAsync(request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Voce nao tem acesso a este quadro.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.CreateAsync(It.IsAny<ListaDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task CriarAsync_DeveFalhar_QuandoNomeVazio()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var request = new ListaCriarRequestDTO
+        {
+            QuadroId = quadroId,
+            Nome = "   "
+        };
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.CriarAsync(request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Nome da lista e obrigatorio.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.CreateAsync(It.IsAny<ListaDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EditarAsync_DeveFalhar_QuandoListaNaoEncontrada()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int listaId = 1;
+        listaDalMock.Setup(x => x.GetByIdAsync(listaId)).ReturnsAsync((ListaDTO?)null);
+
+        var request = new ListaCriarRequestDTO
+        {
+            QuadroId = 1,
+            Nome = "Editada"
+        };
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.EditarAsync(listaId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Lista nao encontrada.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.EditAsync(It.IsAny<int>(), It.IsAny<ListaDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EditarAsync_DeveFalhar_QuandoUsuarioSemAcessoAoQuadro()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int listaId = 1;
+        int quadroId = 10;
+        var listaAtual = new ListaDTO { Id = listaId, QuadroId = quadroId, Nome = "Original" };
+        listaDalMock.Setup(x => x.GetByIdAsync(listaId)).ReturnsAsync(listaAtual);
+
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(false);
+
+        var request = new ListaCriarRequestDTO
+        {
+            QuadroId = quadroId,
+            Nome = "Editada"
+        };
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.EditarAsync(listaId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Voce nao tem acesso a este quadro.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.EditAsync(It.IsAny<int>(), It.IsAny<ListaDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task EditarAsync_DeveFalhar_QuandoNomeVazio()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int listaId = 1;
+        int quadroId = 10;
+        var listaAtual = new ListaDTO { Id = listaId, QuadroId = quadroId, Nome = "Original" };
+        listaDalMock.Setup(x => x.GetByIdAsync(listaId)).ReturnsAsync(listaAtual);
+
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var request = new ListaCriarRequestDTO
+        {
+            QuadroId = quadroId,
+            Nome = ""
+        };
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.EditarAsync(listaId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Nome da lista e obrigatorio.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.EditAsync(It.IsAny<int>(), It.IsAny<ListaDTO>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExcluirAsync_DeveFalhar_QuandoListaNaoEncontrada()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int listaId = 1;
+        listaDalMock.Setup(x => x.GetByIdAsync(listaId)).ReturnsAsync((ListaDTO?)null);
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ExcluirAsync(listaId);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Lista nao encontrada.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.DeleteAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExcluirAsync_DeveFalhar_QuandoUsuarioSemAcesso()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int listaId = 1;
+        int quadroId = 10;
+        var lista = new ListaDTO { Id = listaId, QuadroId = quadroId };
+        listaDalMock.Setup(x => x.GetByIdAsync(listaId)).ReturnsAsync(lista);
+
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(false);
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ExcluirAsync(listaId);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Voce nao tem acesso a este quadro.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.DeleteAsync(It.IsAny<int>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ExcluirAsync_DeveExcluirLista_QuandoValido()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int listaId = 1;
+        int quadroId = 10;
+        var lista = new ListaDTO { Id = listaId, QuadroId = quadroId };
+        listaDalMock.Setup(x => x.GetByIdAsync(listaId)).ReturnsAsync(lista);
+
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+        listaDalMock.Setup(x => x.DeleteAsync(listaId)).ReturnsAsync(true);
+
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ExcluirAsync(listaId);
+
+        // Assert
+        Assert.True(retorno.Sucesso);
+        Assert.Equal("Lista excluida com sucesso.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.DeleteAsync(listaId), Times.Once);
     }
 }
