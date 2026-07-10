@@ -9,4 +9,5 @@ public interface IListaDAL : IBaseDAL<Lista, ListaDTO>
 {
     Task<List<ListaDTO>> ObterPorQuadroOrdenadoAsync(int quadroId);
     Task<int> ObterProximaOrdemAsync(int quadroId);
+    Task AtualizarOrdensAsync(Dictionary<int, int> ordens);
 }

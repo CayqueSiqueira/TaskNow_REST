@@ -343,4 +343,184 @@ public class ListaBLLTests
         Assert.Equal("Lista atualizada com sucesso.", retorno.Mensagem);
         listaDalMock.Verify(x => x.EditAsync(listaId, It.Is<ListaDTO>(d => d.Nome == "A Fazer")), Times.Once);
     }
+
+    [Fact]
+    public async Task ReordenarAsync_DeveFalhar_QuandoUsuarioNaoTemAcesso()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(false);
+
+        var request = new ListaReordenarRequestDTO { ListaIdsOrdenados = [1, 2, 3] };
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ReordenarAsync(quadroId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Voce nao tem acesso a este quadro.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.IsAny<Dictionary<int, int>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReordenarAsync_DeveFalhar_QuandoRequisicaoVazia()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var request = new ListaReordenarRequestDTO { ListaIdsOrdenados = [] };
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ReordenarAsync(quadroId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("A lista de IDs enviados nao pode ser vazia.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.IsAny<Dictionary<int, int>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReordenarAsync_DeveFalhar_QuandoContemIdsDuplicados()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var request = new ListaReordenarRequestDTO { ListaIdsOrdenados = [1, 2, 2] };
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ReordenarAsync(quadroId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("A requisicao contem IDs duplicados.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.IsAny<Dictionary<int, int>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReordenarAsync_DeveFalhar_QuandoContemIdDeOutroQuadro()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var listasDoQuadro = new List<ListaDTO>
+        {
+            new() { Id = 1, QuadroId = quadroId, Nome = "Lista 1" },
+            new() { Id = 2, QuadroId = quadroId, Nome = "Lista 2" }
+        };
+        listaDalMock.Setup(x => x.ObterPorQuadroOrdenadoAsync(quadroId)).ReturnsAsync(listasDoQuadro);
+
+        var request = new ListaReordenarRequestDTO { ListaIdsOrdenados = [1, 3] };
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ReordenarAsync(quadroId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("Um ou mais IDs enviados nao pertencem a este quadro.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.IsAny<Dictionary<int, int>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReordenarAsync_DeveFalhar_QuandoFaltaIdDoQuadro()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var listasDoQuadro = new List<ListaDTO>
+        {
+            new() { Id = 1, QuadroId = quadroId, Nome = "Lista 1" },
+            new() { Id = 2, QuadroId = quadroId, Nome = "Lista 2" }
+        };
+        listaDalMock.Setup(x => x.ObterPorQuadroOrdenadoAsync(quadroId)).ReturnsAsync(listasDoQuadro);
+
+        var request = new ListaReordenarRequestDTO { ListaIdsOrdenados = [1] };
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ReordenarAsync(quadroId, request);
+
+        // Assert
+        Assert.False(retorno.Sucesso);
+        Assert.Equal("A quantidade de IDs enviados nao corresponde ao total de listas do quadro.", retorno.Mensagem);
+        listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.IsAny<Dictionary<int, int>>()), Times.Never);
+    }
+
+    [Fact]
+    public async Task ReordenarAsync_DeveReordenar_QuandoDadosValidos()
+    {
+        // Arrange
+        var listaDalMock = new Mock<IListaDAL>();
+        var quadroDalMock = new Mock<IQuadroDAL>();
+        var usuarioMock = new Mock<IUsuarioContexto>();
+
+        int quadroId = 1;
+        usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
+        quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(quadroId, "user-1")).ReturnsAsync(true);
+
+        var listasDoQuadro = new List<ListaDTO>
+        {
+            new() { Id = 1, QuadroId = quadroId, Nome = "Lista 1", Ordem = 1 },
+            new() { Id = 2, QuadroId = quadroId, Nome = "Lista 2", Ordem = 2 }
+        };
+        var listasReordenadas = new List<ListaDTO>
+        {
+            new() { Id = 2, QuadroId = quadroId, Nome = "Lista 2", Ordem = 1 },
+            new() { Id = 1, QuadroId = quadroId, Nome = "Lista 1", Ordem = 2 }
+        };
+
+        listaDalMock.SetupSequence(x => x.ObterPorQuadroOrdenadoAsync(quadroId))
+            .ReturnsAsync(listasDoQuadro)
+            .ReturnsAsync(listasReordenadas);
+
+        listaDalMock.Setup(x => x.AtualizarOrdensAsync(It.IsAny<Dictionary<int, int>>())).Returns(Task.CompletedTask);
+
+        var request = new ListaReordenarRequestDTO { ListaIdsOrdenados = [2, 1] };
+        var bll = new ListaBLL(listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+
+        // Act
+        var retorno = await bll.ReordenarAsync(quadroId, request);
+
+        // Assert
+        Assert.True(retorno.Sucesso);
+        Assert.Equal("Listas reordenadas com sucesso.", retorno.Mensagem);
+        Assert.NotNull(retorno.Dados);
+        Assert.Equal(2, retorno.Dados[0].Id);
+        Assert.Equal(1, retorno.Dados[1].Id);
+
+        listaDalMock.Verify(x => x.AtualizarOrdensAsync(It.Is<Dictionary<int, int>>(dict => 
+            dict.Count == 2 && dict[2] == 1 && dict[1] == 2)), Times.Once);
+    }
 }

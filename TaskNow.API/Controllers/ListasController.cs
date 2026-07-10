@@ -31,6 +31,13 @@ public class ListasController(IListaBLL listaBLL) : ControllerBase
         return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
     }
 
+    [HttpPost("quadro/{quadroId:int}/reordenar")]
+    public async Task<IActionResult> Reordenar(int quadroId, ListaReordenarRequestDTO request)
+    {
+        var retorno = await listaBLL.ReordenarAsync(quadroId, request);
+        return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
+    }
+
     [HttpPut("{id:int}")]
     public async Task<IActionResult> Editar(int id, ListaCriarRequestDTO request)
     {
