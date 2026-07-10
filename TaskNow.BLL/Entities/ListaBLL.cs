@@ -147,6 +147,51 @@ public class ListaBLL(IListaDAL listaDAL, IQuadroDAL quadroDAL, IUsuarioContexto
         return RetornoDTO<List<ListaDTO>>.Ok(listasAtualizadas, "Listas padrao processadas com sucesso.");
     }
 
+    public async Task<RetornoDTO<List<ListaDTO>>> ReordenarAsync(int quadroId, ListaReordenarRequestDTO request)
+    {
+        var permissao = await ValidarAcessoQuadroAsync(quadroId);
+        if (!permissao.Sucesso)
+        {
+            return RetornoDTO<List<ListaDTO>>.Fail(permissao.Mensagem!);
+        }
+
+        if (request?.ListaIdsOrdenados == null || request.ListaIdsOrdenados.Count == 0)
+        {
+            return RetornoDTO<List<ListaDTO>>.Fail("A lista de IDs enviados nao pode ser vazia.");
+        }
+
+        if (request.ListaIdsOrdenados.Distinct().Count() != request.ListaIdsOrdenados.Count)
+        {
+            return RetornoDTO<List<ListaDTO>>.Fail("A requisicao contem IDs duplicados.");
+        }
+
+        var listasAtuais = await listaDAL.ObterPorQuadroOrdenadoAsync(quadroId);
+        var idsNoBanco = listasAtuais.Select(l => l.Id).ToList();
+
+        var contemIdDeOutroQuadro = request.ListaIdsOrdenados.Any(id => !idsNoBanco.Contains(id));
+        if (contemIdDeOutroQuadro)
+        {
+            return RetornoDTO<List<ListaDTO>>.Fail("Um ou mais IDs enviados nao pertencem a este quadro.");
+        }
+
+        if (request.ListaIdsOrdenados.Count != idsNoBanco.Count)
+        {
+            return RetornoDTO<List<ListaDTO>>.Fail("A quantidade de IDs enviados nao corresponde ao total de listas do quadro.");
+        }
+
+        var ordens = new Dictionary<int, int>();
+        for (int i = 0; i < request.ListaIdsOrdenados.Count; i++)
+        {
+            ordens.Add(request.ListaIdsOrdenados[i], i + 1);
+        }
+
+        await listaDAL.AtualizarOrdensAsync(ordens);
+
+        var listasAtualizadas = await listaDAL.ObterPorQuadroOrdenadoAsync(quadroId);
+
+        return RetornoDTO<List<ListaDTO>>.Ok(listasAtualizadas, "Listas reordenadas com sucesso.");
+    }
+
     private async Task<RetornoDTO<bool>> ValidarAcessoQuadroAsync(int quadroId)
     {
         var usuarioId = usuarioContexto.UsuarioId;

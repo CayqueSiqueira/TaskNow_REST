@@ -11,4 +11,6 @@ public interface IListaBLL
     Task<RetornoDTO<ListaDTO>> EditarAsync(int id, ListaCriarRequestDTO request);
     Task<RetornoDTO<bool>> ExcluirAsync(int id);
     Task<RetornoDTO<List<ListaDTO>>> CriarPadraoAsync(int quadroId);
+    Task<RetornoDTO<List<ListaDTO>>> ReordenarAsync(int quadroId, ListaReordenarRequestDTO request);
+
 }

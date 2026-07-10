@@ -48,4 +48,17 @@ public class ListaDAL(TaskNowDbContext context, IMapper mapper) : BaseDAL<Lista,
 
         return (ultimaOrdem ?? 0) + 1;
     }
+
+    public async Task AtualizarOrdensAsync(Dictionary<int, int> ordens)
+    {
+        foreach (var (listaId, ordem) in ordens)
+        {
+            var lista = await _dbSet.FindAsync(listaId);
+            if (lista is not null)
+            {
+                lista.Ordem = ordem;
+            }
+        }
+        await _context.SaveChangesAsync();
+    }
 }
