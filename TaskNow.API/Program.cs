@@ -44,10 +44,10 @@ builder.Services.AddSwaggerGen(options =>
         Description = "Informe somente o token JWT gerado pelo endpoint /api/auth/login ou /api/auth/registrar."
     });
 
-    options.AddSecurityRequirement(_ => new OpenApiSecurityRequirement
+    options.AddSecurityRequirement(document => new OpenApiSecurityRequirement
     {
         {
-            new OpenApiSecuritySchemeReference("Bearer", null, null),
+            new OpenApiSecuritySchemeReference("Bearer", document, null),
             []
         }
     });
