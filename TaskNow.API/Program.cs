@@ -99,9 +99,14 @@ builder.Services.AddScoped<IUsuarioContexto, UsuarioContexto>();
 
 builder.Services.AddScoped<IQuadroDAL, QuadroDAL>();
 builder.Services.AddScoped<IListaDAL, ListaDAL>();
+builder.Services.AddScoped<ICartaoDAL, CartaoDAL>();
 
 builder.Services.AddScoped<IQuadroBLL, QuadroBLL>();
 builder.Services.AddScoped<IListaBLL, ListaBLL>();
+builder.Services.AddScoped<ICartaoBLL, CartaoBLL>();
+
+
+
 
 var allowedOrigins = builder.Configuration.GetSection("Cors:AllowedOrigins").Get<string[]>()
     ?? ["http://localhost:5173"];

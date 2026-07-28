@@ -6,6 +6,7 @@ namespace TaskNow.BLL.Entities.Interfaces;
 
 public interface ICartaoBLL
 {
+    Task<RetornoDTO<CartaoDTO>> ObterPorIdAsync(int id);
     Task<RetornoDTO<CartaoDTO>> CriarAsync(CartaoCriarRequestDTO request);
     Task<RetornoDTO<CartaoDTO>> EditarAsync(int id, CartaoEditarRequestDTO request);
     Task<RetornoDTO<bool>> MoverAsync(int cartaoId, CartaoMoverRequestDTO request);
