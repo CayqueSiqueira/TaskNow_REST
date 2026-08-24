@@ -1,15 +1,52 @@
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TaskNow.DTO.Utils;
+using TaskNow.BLL.Entities.Interfaces;
+using TaskNow.DTO.Requests.Etiqueta;
 
 namespace TaskNow.API.Controllers;
 
-[ApiController]
 [Authorize]
 [Route("api/[controller]")]
-public class EtiquetasController : ControllerBase
+[ApiController]
+public class EtiquetasController(IEtiquetaBLL etiquetaBLL) : ControllerBase
 {
     [HttpGet("quadro/{quadroId:int}")]
-    public IActionResult ListarPorQuadro(int quadroId) =>
-        StatusCode(StatusCodes.Status501NotImplemented, RetornoDTO<object>.Fail("Etiquetas ficam para a Fase 4."));
+    public async Task<IActionResult> ObterPorQuadro(int quadroId)
+    {
+        var retorno = await etiquetaBLL.ListarPorQuadroAsync(quadroId);
+        if (!retorno.Sucesso)
+            return BadRequest(retorno);
+
+        return Ok(retorno);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> Criar([FromBody] EtiquetaCriarRequestDTO request)
+    {
+        var retorno = await etiquetaBLL.CriarAsync(request);
+        if (!retorno.Sucesso)
+            return BadRequest(retorno);
+
+        return Ok(retorno);
+    }
+
+    [HttpPut("{id:int}")]
+    public async Task<IActionResult> Editar(int id, [FromBody] EtiquetaCriarRequestDTO request)
+    {
+        var retorno = await etiquetaBLL.EditarAsync(id, request);
+        if (!retorno.Sucesso)
+            return BadRequest(retorno);
+
+        return Ok(retorno);
+    }
+
+    [HttpDelete("{id:int}")]
+    public async Task<IActionResult> Excluir(int id)
+    {
+        var retorno = await etiquetaBLL.ExcluirAsync(id);
+        if (!retorno.Sucesso)
+            return BadRequest(retorno);
+
+        return Ok(retorno);
+    }
 }
