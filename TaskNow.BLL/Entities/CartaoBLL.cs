@@ -11,6 +11,7 @@ public class CartaoBLL(
     ICartaoDAL cartaoDAL,
     IListaDAL listaDAL,
     IQuadroDAL quadroDAL,
+    IEtiquetaDAL etiquetaDAL,
     IUsuarioContexto usuarioContexto) : ICartaoBLL
 {
     public async Task<RetornoDTO<CartaoDTO>> ObterPorIdAsync(int id)
@@ -192,5 +193,72 @@ public class CartaoBLL(
     public Task<RetornoDTO<bool>> MoverAsync(int cartaoId, CartaoMoverRequestDTO request)
     {
         return Task.FromResult(RetornoDTO<bool>.Fail("Mover cartao fica para a Fase 3."));
+    }
+
+    public async Task<RetornoDTO<bool>> AssociarEtiquetaAsync(int cartaoId, int etiquetaId)
+    {
+        var usuarioId = usuarioContexto.UsuarioId;
+        if (string.IsNullOrWhiteSpace(usuarioId))
+        {
+            return RetornoDTO<bool>.Fail("Usuario nao autenticado.");
+        }
+
+        var cartao = await cartaoDAL.GetByIdAsync(cartaoId);
+        if (cartao == null)
+            return RetornoDTO<bool>.Fail("Cartao nao encontrado.");
+        var lista = await listaDAL.GetByIdAsync(cartao.ListaId);
+        if (lista == null)
+            return RetornoDTO<bool>.Fail("Lista nao encontrada.");
+
+        var etiqueta = await etiquetaDAL.GetByIdAsync(etiquetaId);
+        if (etiqueta == null)
+            return RetornoDTO<bool>.Fail("Etiqueta nao encontrada.");
+
+        if (lista.QuadroId != etiqueta.QuadroId)
+        {
+            return RetornoDTO<bool>.Fail("A etiqueta e o cartao nao pertencem ao mesmo quadro.");
+        }
+
+        if (!await quadroDAL.UsuarioTemAcessoAsync(lista.QuadroId, usuarioId))
+        {
+            return RetornoDTO<bool>.Fail("Voce nao tem acesso a este quadro.");
+        }
+
+        if (await cartaoDAL.CartaoPossuiEtiquetaAsync(cartaoId, etiquetaId))
+        {
+            return RetornoDTO<bool>.Ok(true, "Etiqueta ja associada."); 
+        }
+
+        var sucesso = await cartaoDAL.AssociarEtiquetaAsync(cartaoId, etiquetaId);
+        return sucesso
+            ? RetornoDTO<bool>.Ok(true, "Etiqueta associada com sucesso.")
+            : RetornoDTO<bool>.Fail("Erro ao associar etiqueta.");
+    }
+
+    public async Task<RetornoDTO<bool>> RemoverEtiquetaAsync(int cartaoId, int etiquetaId)
+    {
+        var usuarioId = usuarioContexto.UsuarioId;
+        if (string.IsNullOrWhiteSpace(usuarioId))
+        {
+            return RetornoDTO<bool>.Fail("Usuario nao autenticado.");
+        }
+
+        var cartao = await cartaoDAL.GetByIdAsync(cartaoId);
+        if (cartao == null)
+            return RetornoDTO<bool>.Fail("Cartao nao encontrado.");
+
+        var lista = await listaDAL.GetByIdAsync(cartao.ListaId);
+        if (lista == null)
+            return RetornoDTO<bool>.Fail("Lista nao encontrada.");
+
+        if (!await quadroDAL.UsuarioTemAcessoAsync(lista.QuadroId, usuarioId))
+        {
+            return RetornoDTO<bool>.Fail("Voce nao tem acesso a este quadro.");
+        }
+        var sucesso = await cartaoDAL.RemoverEtiquetaAsync(cartaoId, etiquetaId);
+
+        return sucesso
+            ? RetornoDTO<bool>.Ok(true, "Etiqueta removida com sucesso.")
+            : RetornoDTO<bool>.Ok(true, "A etiqueta nao estava associada ao cartao.");
     }
 }
