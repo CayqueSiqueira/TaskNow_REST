@@ -35,7 +35,7 @@ public class ComentarioBLL(
             return RetornoDTO<ComentarioDTO>.Fail("Texto do comentario deve ter no maximo 2000 caracteres.");
 
         var quadroId = await ObterQuadroIdPeloCartaoAsync(request.CartaoId);
-        if (quadroId == null) return RetornoDTO<ComentarioDTO>.Fail("Comentario nao encontrado.");
+        if (quadroId == null) return RetornoDTO<ComentarioDTO>.Fail("Cartao nao encontrado.");
 
         var usuarioId = usuarioContexto.UsuarioId;
         if (!await quadroDAL.UsuarioTemAcessoAsync(quadroId.Value, usuarioId))
