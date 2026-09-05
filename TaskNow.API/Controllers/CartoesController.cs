@@ -42,4 +42,18 @@ public class CartoesController(ICartaoBLL cartaoBLL) : ControllerBase
     [HttpPost("{id:int}/mover")]
     public IActionResult Mover(int id, CartaoMoverRequestDTO request) =>
         StatusCode(StatusCodes.Status501NotImplemented, RetornoDTO<object>.Fail("Mover cartao fica para a Fase 3."));
+
+    [HttpPost("{id:int}/etiquetas/{etiquetaId:int}")]
+    public async Task<IActionResult> AssociarEtiqueta(int id, int etiquetaId)
+    {
+        var retorno = await cartaoBLL.AssociarEtiquetaAsync(id, etiquetaId);
+        return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
+    }
+
+    [HttpDelete("{id:int}/etiquetas/{etiquetaId:int}")]
+    public async Task<IActionResult> RemoverEtiqueta(int id, int etiquetaId)
+    {
+        var retorno = await cartaoBLL.RemoverEtiquetaAsync(id, etiquetaId);
+        return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
+    }
 }
