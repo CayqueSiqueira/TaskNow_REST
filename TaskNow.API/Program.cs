@@ -102,12 +102,14 @@ builder.Services.AddScoped<IListaDAL, ListaDAL>();
 builder.Services.AddScoped<ICartaoDAL, CartaoDAL>();
 builder.Services.AddScoped<IEtiquetaDAL, EtiquetaDAL>();
 builder.Services.AddScoped<IComentarioDAL, ComentarioDAL>();
+builder.Services.AddScoped<IAtividadeCartaoDAL, AtividadeCartaoDAL>();
 
 builder.Services.AddScoped<IQuadroBLL, QuadroBLL>();
 builder.Services.AddScoped<IListaBLL, ListaBLL>();
 builder.Services.AddScoped<ICartaoBLL, CartaoBLL>();
 builder.Services.AddScoped<IEtiquetaBLL, EtiquetaBLL>();
 builder.Services.AddScoped<IComentarioBLL, ComentarioBLL>();
+builder.Services.AddScoped<IAtividadeCartaoBLL, AtividadeCartaoBLL>();
 
 
 
