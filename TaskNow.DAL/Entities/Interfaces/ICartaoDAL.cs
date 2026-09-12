@@ -11,4 +11,5 @@ public interface ICartaoDAL : IBaseDAL<Cartao, CartaoDTO>
     Task<bool> CartaoPossuiEtiquetaAsync(int cartaoId, int etiquetaId);
     Task<bool> AssociarEtiquetaAsync(int cartaoId, int etiquetaId);
     Task<bool> RemoverEtiquetaAsync(int cartaoId, int etiquetaId);
+    Task AtualizarOrdensLoteAsync(List<CartaoDTO> cartoesAtualizados);
 }
