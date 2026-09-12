@@ -11,4 +11,6 @@ public interface ICartaoBLL
     Task<RetornoDTO<CartaoDTO>> EditarAsync(int id, CartaoEditarRequestDTO request);
     Task<RetornoDTO<bool>> MoverAsync(int cartaoId, CartaoMoverRequestDTO request);
     Task<RetornoDTO<bool>> ExcluirAsync(int id);
+    Task<RetornoDTO<bool>> AssociarEtiquetaAsync(int cartaoId, int etiquetaId);
+    Task<RetornoDTO<bool>> RemoverEtiquetaAsync(int cartaoId, int etiquetaId);
 }

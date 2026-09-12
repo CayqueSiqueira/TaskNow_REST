@@ -38,6 +38,13 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Cartao, opt => opt.Ignore())
             .ForMember(dest => dest.Autor, opt => opt.Ignore());
 
+        CreateMap<AtividadeCartao, AtividadeCartaoDTO>()
+            .ForMember(dest => dest.UsuarioNome, opt => opt.MapFrom(src =>
+                src.Usuario == null ? string.Empty : src.Usuario.UserName ?? src.Usuario.Email ?? string.Empty));
+        CreateMap<AtividadeCartaoDTO, AtividadeCartao>()
+            .ForMember(dest => dest.Cartao, opt => opt.Ignore())
+            .ForMember(dest => dest.Usuario, opt => opt.Ignore());
+
         CreateMap<MembroQuadro, MembroQuadroDTO>()
             .ForMember(dest => dest.Papel, opt => opt.MapFrom(src => src.Papel.ToString()));
         CreateMap<MembroQuadroDTO, MembroQuadro>()

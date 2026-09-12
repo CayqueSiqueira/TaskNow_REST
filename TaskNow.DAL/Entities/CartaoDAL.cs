@@ -61,5 +61,42 @@ namespace TaskNow.DAL.Entities
 
             return (ultimaOrdem ?? 0) + 1;
         }
+
+        public async Task<bool> CartaoPossuiEtiquetaAsync(int cartaoId, int etiquetaId)
+        {
+            return await _context.CartoesEtiquetas.AnyAsync(ce => ce.CartaoId == cartaoId && ce.EtiquetaId == etiquetaId);
+        }
+
+        public async Task<bool> AssociarEtiquetaAsync(int cartaoId, int etiquetaId)
+        {
+            var associacao = new CartaoEtiqueta
+            {
+                CartaoId = cartaoId,
+                EtiquetaId = etiquetaId
+            };
+
+            await _context.CartoesEtiquetas.AddAsync(associacao);
+
+            var alteracoes = await _context.SaveChangesAsync();
+
+            return alteracoes > 0;
+        }
+
+        public async Task<bool> RemoverEtiquetaAsync(int cartaoId, int etiquetaId)
+        {
+            var associacao = await _context.CartoesEtiquetas
+                .FirstOrDefaultAsync(ce => ce.CartaoId == cartaoId && ce.EtiquetaId == etiquetaId);
+
+            if (associacao == null)
+            {
+                return false;
+            }
+
+            _context.CartoesEtiquetas.Remove(associacao);
+
+            var alteracoes = await _context.SaveChangesAsync();
+
+            return alteracoes > 0;
+        }
     }
 }
