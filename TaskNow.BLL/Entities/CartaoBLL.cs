@@ -12,6 +12,7 @@ public class CartaoBLL(
     IListaDAL listaDAL,
     IQuadroDAL quadroDAL,
     IEtiquetaDAL etiquetaDAL,
+    IAtividadeCartaoBLL atividadeBLL,
     IUsuarioContexto usuarioContexto) : ICartaoBLL
 {
     public async Task<RetornoDTO<CartaoDTO>> ObterPorIdAsync(int id)
@@ -94,6 +95,8 @@ public class CartaoBLL(
             ResponsavelId = string.IsNullOrWhiteSpace(request.ResponsavelId) ? null : request.ResponsavelId
         });
 
+        await atividadeBLL.RegistrarAtividadeAsync(cartao.Id, "Criacao", "Cartão criado.");
+
         return RetornoDTO<CartaoDTO>.Ok(cartao, "Cartao criado com sucesso.");
     }
 
@@ -155,6 +158,8 @@ public class CartaoBLL(
         {
             return RetornoDTO<CartaoDTO>.Fail("Cartao nao encontrado.");
         }
+
+        await atividadeBLL.RegistrarAtividadeAsync(id, "Edicao", "Cartão atualizado.");
 
         return RetornoDTO<CartaoDTO>.Ok(cartaoEditado, "Cartao atualizado com sucesso.");
     }

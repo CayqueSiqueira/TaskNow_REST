@@ -13,6 +13,7 @@ public class TaskNowDbContext(DbContextOptions<TaskNowDbContext> options) : Iden
     public DbSet<Etiqueta> Etiquetas => Set<Etiqueta>();
     public DbSet<CartaoEtiqueta> CartoesEtiquetas => Set<CartaoEtiqueta>();
     public DbSet<Comentario> Comentarios => Set<Comentario>();
+    public DbSet<AtividadeCartao> AtividadesCartao => Set<AtividadeCartao>();
 
     protected override void OnModelCreating(ModelBuilder builder)
     {
@@ -67,6 +68,16 @@ public class TaskNowDbContext(DbContextOptions<TaskNowDbContext> options) : Iden
             entity.HasIndex(x => new { x.QuadroId, x.UsuarioId }).IsUnique();
             entity.HasOne(x => x.Quadro).WithMany(x => x.Membros).HasForeignKey(x => x.QuadroId).OnDelete(DeleteBehavior.Cascade);
             entity.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.Cascade);
+        });
+
+        builder.Entity<AtividadeCartao>(entity =>
+        {
+            entity.Property(x => x.Tipo).HasMaxLength(50).IsRequired();
+            entity.Property(x => x.Descricao).HasMaxLength(500).IsRequired();
+            // Se o cartao for deletado, apaga o historico em cascata
+            entity.HasOne(x => x.Cartao).WithMany().HasForeignKey(x => x.CartaoId).OnDelete(DeleteBehavior.Cascade);
+            // Se o usuario for deletado, deixa o historico orfao (null) para nao apagar os rastros do cartao
+            entity.HasOne(x => x.Usuario).WithMany().HasForeignKey(x => x.UsuarioId).OnDelete(DeleteBehavior.SetNull);
         });
     }
 }

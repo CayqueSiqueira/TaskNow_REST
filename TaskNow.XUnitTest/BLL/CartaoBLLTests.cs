@@ -2,6 +2,7 @@ using Moq;
 using TaskNow.BLL.Entities;
 using TaskNow.BLL.Utils.Interfaces;
 using TaskNow.DAL.Entities.Interfaces;
+using TaskNow.BLL.Entities.Interfaces;
 using TaskNow.DTO.Entities;
 using TaskNow.DTO.Requests.Cartao;
 using Xunit;
@@ -20,7 +21,9 @@ public class CartaoBLLTests
 
         usuarioMock.SetupGet(x => x.UsuarioId).Returns(string.Empty);
         var request = new CartaoCriarRequestDTO { ListaId = 10, Titulo = "Teste" };
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.CriarAsync(request);
 
@@ -41,7 +44,9 @@ public class CartaoBLLTests
         var request = new CartaoCriarRequestDTO { ListaId = 10, Titulo = "Teste" };
         
         listaDalMock.Setup(x => x.GetByIdAsync(10)).ReturnsAsync((ListaDTO)null);
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.CriarAsync(request);
 
@@ -64,7 +69,9 @@ public class CartaoBLLTests
         
         listaDalMock.Setup(x => x.GetByIdAsync(10)).ReturnsAsync(listaFake);
         quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(1, "user-1")).ReturnsAsync(false);
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.CriarAsync(request);
 
@@ -83,7 +90,9 @@ public class CartaoBLLTests
 
         usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
         var request = new CartaoCriarRequestDTO { ListaId = 10, Titulo = "" };
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.CriarAsync(request);
 
@@ -109,7 +118,9 @@ public class CartaoBLLTests
         quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(1, "user-1")).ReturnsAsync(true);
         cartaoDalMock.Setup(x => x.ObterProximaOrdemAsync(10)).ReturnsAsync(1);
         cartaoDalMock.Setup(x => x.CreateAsync(It.IsAny<CartaoDTO>())).ReturnsAsync(cartaoCriado);
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.CriarAsync(request);
 
@@ -131,7 +142,9 @@ public class CartaoBLLTests
         var request = new CartaoEditarRequestDTO { Titulo = "Teste Editado" };
         
         cartaoDalMock.Setup(x => x.GetByIdAsync(100)).ReturnsAsync((CartaoDTO)null);
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.EditarAsync(100, request);
 
@@ -150,7 +163,9 @@ public class CartaoBLLTests
 
         usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
         var request = new CartaoEditarRequestDTO { Titulo = "" };
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.EditarAsync(100, request);
 
@@ -176,7 +191,9 @@ public class CartaoBLLTests
         listaDalMock.Setup(x => x.GetByIdAsync(10)).ReturnsAsync(listaFake);
         quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(1, "user-1")).ReturnsAsync(false);
         
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.EditarAsync(100, request);
 
@@ -204,7 +221,9 @@ public class CartaoBLLTests
         quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(1, "user-1")).ReturnsAsync(true);
         cartaoDalMock.Setup(x => x.EditAsync(100, It.IsAny<CartaoDTO>())).ReturnsAsync(cartaoEditado);
         
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.EditarAsync(100, request);
 
@@ -225,7 +244,9 @@ public class CartaoBLLTests
         usuarioMock.SetupGet(x => x.UsuarioId).Returns("user-1");
         cartaoDalMock.Setup(x => x.GetByIdAsync(100)).ReturnsAsync((CartaoDTO)null);
         
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.ExcluirAsync(100);
 
@@ -250,7 +271,9 @@ public class CartaoBLLTests
         listaDalMock.Setup(x => x.GetByIdAsync(10)).ReturnsAsync(listaFake);
         quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(1, "user-1")).ReturnsAsync(false);
         
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.ExcluirAsync(100);
 
@@ -276,7 +299,9 @@ public class CartaoBLLTests
         quadroDalMock.Setup(x => x.UsuarioTemAcessoAsync(1, "user-1")).ReturnsAsync(true);
         cartaoDalMock.Setup(x => x.DeleteAsync(100)).ReturnsAsync(true);
         
-        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, usuarioMock.Object);
+        var etiquetaDalMock = new Mock<IEtiquetaDAL>();
+        var atividadeBllMock = new Mock<IAtividadeCartaoBLL>();
+        var bll = new CartaoBLL(cartaoDalMock.Object, listaDalMock.Object, quadroDalMock.Object, etiquetaDalMock.Object, atividadeBllMock.Object, usuarioMock.Object);
 
         var retorno = await bll.ExcluirAsync(100);
 
@@ -285,3 +310,4 @@ public class CartaoBLLTests
         cartaoDalMock.Verify(x => x.DeleteAsync(100), Times.Once);
     }
 }
+
