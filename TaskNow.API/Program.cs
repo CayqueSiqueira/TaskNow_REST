@@ -155,3 +155,4 @@ app.MapControllers();
 app.MapHub<QuadroHub>("/hubs/quadro");
 
 app.Run();
+

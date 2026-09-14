@@ -47,8 +47,11 @@ public class CartoesController(ICartaoBLL cartaoBLL) : ControllerBase
     }
 
     [HttpPost("{id:int}/mover")]
-    public IActionResult Mover(int id, CartaoMoverRequestDTO request) =>
-        StatusCode(StatusCodes.Status501NotImplemented, RetornoDTO<object>.Fail("Mover cartao fica para a Fase 3."));
+    public async Task<IActionResult> Mover(int id, CartaoMoverRequestDTO request)
+    {
+        var retorno = await cartaoBLL.MoverAsync(id, request);
+        return retorno.Sucesso ? Ok(retorno) : BadRequest(retorno);
+    }
 
     [HttpPost("{id:int}/etiquetas/{etiquetaId:int}")]
     public async Task<IActionResult> AssociarEtiqueta(int id, int etiquetaId)

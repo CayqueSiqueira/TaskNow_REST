@@ -195,9 +195,69 @@ public class CartaoBLL(
             : RetornoDTO<bool>.Fail("Erro ao excluir cartao.");
     }
 
-    public Task<RetornoDTO<bool>> MoverAsync(int cartaoId, CartaoMoverRequestDTO request)
+    public async Task<RetornoDTO<bool>> MoverAsync(int cartaoId, CartaoMoverRequestDTO request)
     {
-        return Task.FromResult(RetornoDTO<bool>.Fail("Mover cartao fica para a Fase 3."));
+        var usuarioId = usuarioContexto.UsuarioId;
+        if (string.IsNullOrWhiteSpace(usuarioId)) return RetornoDTO<bool>.Fail("Usuario nao autenticado.");
+
+        var cartao = await cartaoDAL.GetByIdAsync(cartaoId);
+        if (cartao == null) return RetornoDTO<bool>.Fail("Cartao nao encontrado.");
+
+        var listaOrigem = await listaDAL.GetByIdAsync(cartao.ListaId);
+        var listaDestino = cartao.ListaId == request.NovaListaId ? listaOrigem : await listaDAL.GetByIdAsync(request.NovaListaId);
+
+        if (listaOrigem == null || listaDestino == null) return RetornoDTO<bool>.Fail("Lista de origem ou destino nao encontrada.");
+
+        if (listaOrigem.QuadroId != listaDestino.QuadroId) return RetornoDTO<bool>.Fail("Nao e permitido mover cartoes entre quadros diferentes.");
+
+        if (!await quadroDAL.UsuarioTemAcessoAsync(listaOrigem.QuadroId, usuarioId))
+            return RetornoDTO<bool>.Fail("Voce nao tem acesso a este quadro.");
+
+        var novaOrdem = request.NovaOrdem;
+
+        if (cartao.ListaId == request.NovaListaId)
+        {
+            if (cartao.Ordem == novaOrdem) return RetornoDTO<bool>.Ok(true, "Posicao inalterada.");
+
+            var cartoes = await cartaoDAL.ObterPorListaOrdenadoAsync(cartao.ListaId);
+            var oldIndex = cartoes.FindIndex(c => c.Id == cartaoId);
+            var item = cartoes[oldIndex];
+            cartoes.RemoveAt(oldIndex);
+
+            if (novaOrdem > cartoes.Count) novaOrdem = cartoes.Count;
+            if (novaOrdem < 0) novaOrdem = 0;
+
+            cartoes.Insert(novaOrdem, item);
+
+            for (int i = 0; i < cartoes.Count; i++) cartoes[i].Ordem = i;
+
+            await cartaoDAL.AtualizarOrdensLoteAsync(cartoes);
+        }
+        else
+        {
+            var cartoesOrigem = await cartaoDAL.ObterPorListaOrdenadoAsync(cartao.ListaId);
+            var cartoesDestino = await cartaoDAL.ObterPorListaOrdenadoAsync(request.NovaListaId);
+
+            var oldIndex = cartoesOrigem.FindIndex(c => c.Id == cartaoId);
+            var item = cartoesOrigem[oldIndex];
+            cartoesOrigem.RemoveAt(oldIndex);
+            item.ListaId = request.NovaListaId;
+
+            if (novaOrdem > cartoesDestino.Count) novaOrdem = cartoesDestino.Count;
+            if (novaOrdem < 0) novaOrdem = 0;
+
+            cartoesDestino.Insert(novaOrdem, item);
+
+            for (int i = 0; i < cartoesOrigem.Count; i++) cartoesOrigem[i].Ordem = i;
+            for (int i = 0; i < cartoesDestino.Count; i++) cartoesDestino[i].Ordem = i;
+
+            var todosAlterados = cartoesOrigem.Concat(cartoesDestino).ToList();
+            await cartaoDAL.AtualizarOrdensLoteAsync(todosAlterados);
+        }
+
+        await atividadeBLL.RegistrarAtividadeAsync(cartaoId, "Movimento", $"Cartão movido para a ordem {novaOrdem} na lista '{listaDestino.Nome}'.");
+
+        return RetornoDTO<bool>.Ok(true, "Cartao movido com sucesso.");
     }
 
     public async Task<RetornoDTO<bool>> AssociarEtiquetaAsync(int cartaoId, int etiquetaId)
