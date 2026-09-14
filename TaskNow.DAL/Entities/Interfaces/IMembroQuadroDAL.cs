@@ -6,6 +6,9 @@ namespace TaskNow.DAL.Entities.Interfaces;
 
 public interface IMembroQuadroDAL : IBaseDAL<MembroQuadro, MembroQuadroDTO>
 {
-    Task<bool> EhMembroAsync(int quadroId, string usuarioId);
     Task<List<MembroQuadroDTO>> ObterPorQuadroAsync(int quadroId);
+    Task<MembroQuadroDTO?> ObterPorUsuarioEQuadroAsync(int quadroId, string usuarioId);
+    Task<bool> EhDonoAsync(int quadroId, string usuarioId);
+    Task<bool> EhMembroAsync(int quadroId, string usuarioId);
+    Task<bool> RemoverMembroAsync(int quadroId, string usuarioId);
 }

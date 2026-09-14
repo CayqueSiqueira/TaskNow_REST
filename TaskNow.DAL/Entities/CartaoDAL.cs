@@ -1,4 +1,4 @@
-﻿using AutoMapper;
+using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using Microsoft.EntityFrameworkCore; // Fundamental para o Include, ToListAsync e MaxAsync
 using System;
@@ -97,6 +97,21 @@ namespace TaskNow.DAL.Entities
             var alteracoes = await _context.SaveChangesAsync();
 
             return alteracoes > 0;
+        }
+
+        public async Task AtualizarOrdensLoteAsync(List<CartaoDTO> cartoesAtualizados)
+        {
+            var ids = cartoesAtualizados.Select(c => c.Id).ToList();
+            var cartoesDb = await _context.Cartoes.Where(c => ids.Contains(c.Id)).ToListAsync();
+
+            foreach (var db in cartoesDb)
+            {
+                var dto = cartoesAtualizados.First(c => c.Id == db.Id);
+                db.Ordem = dto.Ordem;
+                db.ListaId = dto.ListaId;
+            }
+
+            await _context.SaveChangesAsync();
         }
     }
 }
