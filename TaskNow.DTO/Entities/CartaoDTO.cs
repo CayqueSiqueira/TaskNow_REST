@@ -9,5 +9,7 @@ public class CartaoDTO
     public int Ordem { get; set; }
     public DateTime? Prazo { get; set; }
     public string? ResponsavelId { get; set; }
+    public string? ResponsavelNome { get; set; }
+    public string? ResponsavelEmail { get; set; }
     public List<EtiquetaDTO> Etiquetas { get; set; } = [];
 }

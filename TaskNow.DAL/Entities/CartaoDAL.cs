@@ -20,6 +20,7 @@ namespace TaskNow.DAL.Entities
             var cartao = await _context.Cartoes
                 .Include(c => c.Etiquetas)
                 .ThenInclude(ce => ce.Etiqueta)
+                .Include(c => c.Responsavel) 
                 .FirstOrDefaultAsync(c => c.Id == id);
 
             if (cartao == null) return null;

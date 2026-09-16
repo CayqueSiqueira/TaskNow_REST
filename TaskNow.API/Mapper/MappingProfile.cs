@@ -22,7 +22,11 @@ public class MappingProfile : Profile
             .ForMember(dest => dest.Etiquetas, opt => opt.MapFrom(src =>
                 src.Etiquetas
                     .Where(x => x.Etiqueta != null)
-                    .Select(x => x.Etiqueta!)));
+                    .Select(x => x.Etiqueta!)))
+            .ForMember(dest => dest.ResponsavelNome, opt => opt.MapFrom(src =>
+                src.Responsavel == null ? null : src.Responsavel.UserName ?? src.Responsavel.Email))
+            .ForMember(dest => dest.ResponsavelEmail, opt => opt.MapFrom(src =>
+                src.Responsavel == null ? null : src.Responsavel.Email));
         CreateMap<CartaoDTO, Cartao>()
             .ForMember(dest => dest.Lista, opt => opt.Ignore())
             .ForMember(dest => dest.Responsavel, opt => opt.Ignore())
